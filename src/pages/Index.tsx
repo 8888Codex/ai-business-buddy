@@ -130,7 +130,7 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-background">
       {/* HERO */}
-      <section className="relative overflow-hidden" style={{ background: "linear-gradient(180deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--background)) 100%)" }}>
+      <section className="relative overflow-hidden" style={{ background: "linear-gradient(180deg, hsl(var(--primary) / 0.03) 0%, hsl(var(--primary) / 0.06) 40%, hsl(var(--background)) 100%)" }}>
         <div className="container mx-auto px-4 py-16 md:py-24">
           <div className="flex flex-col lg:flex-row items-center gap-12">
             <div className="flex-1 text-center lg:text-left space-y-6">
@@ -172,7 +172,7 @@ export default function Index() {
       </section>
 
       {/* COMO FUNCIONA */}
-      <section className="py-20 bg-background">
+      <section className="py-24 bg-background">
         <div className="container mx-auto px-4">
           <AnimatedSection className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground">Seu Agente de IA em 3 Passos</h2>
@@ -197,7 +197,7 @@ export default function Index() {
       </section>
 
       {/* BENEFÍCIOS */}
-      <section className="py-20" style={{ background: "hsl(var(--secondary))" }}>
+      <section className="py-24" style={{ background: "hsl(var(--secondary))" }}>
         <div className="container mx-auto px-4">
           <AnimatedSection className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground">Por Que 500+ Empresários Já Usam</h2>
@@ -223,7 +223,7 @@ export default function Index() {
       </section>
 
       {/* PROVA SOCIAL */}
-      <section className="py-20 bg-background">
+      <section className="py-24 bg-background">
         <div className="container mx-auto px-4">
           <AnimatedSection className="text-center mb-10 max-w-3xl mx-auto space-y-4">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground">Criado por Quem Faz de Verdade</h2>
@@ -256,7 +256,7 @@ export default function Index() {
       </section>
 
       {/* PRICING */}
-      <section className="py-20" style={{ background: "hsl(var(--secondary))" }}>
+      <section className="py-24" style={{ background: "hsl(var(--secondary))" }}>
         <div className="container mx-auto px-4">
           <AnimatedSection className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground">Planos</h2>
@@ -299,7 +299,7 @@ export default function Index() {
       </section>
 
       {/* GARANTIA */}
-      <section className="py-20 bg-background">
+      <section className="py-24 bg-background">
         <div className="container mx-auto px-4 max-w-2xl">
           <AnimatedSection>
             <Card className="border-success border-2">
@@ -318,7 +318,7 @@ export default function Index() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20" style={{ background: "hsl(var(--secondary))" }}>
+      <section className="py-24" style={{ background: "hsl(var(--secondary))" }}>
         <div className="container mx-auto px-4 max-w-2xl">
           <AnimatedSection className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground">Perguntas Frequentes</h2>
@@ -337,7 +337,7 @@ export default function Index() {
       </section>
 
       {/* CTA FINAL */}
-      <section className="py-20 bg-primary">
+      <section className="py-24 bg-primary">
         <div className="container mx-auto px-4 text-center space-y-6">
           <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground">
             Seu próximo cliente pode estar mandando mensagem agora. Quem vai responder?
