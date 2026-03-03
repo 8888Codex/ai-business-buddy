@@ -1,32 +1,43 @@
 
 
-## Página de Conexão WhatsApp (/connect)
+## Dashboard Principal (/dashboard)
 
 ### Arquivo a editar
 
-**`src/pages/Connect.tsx`** — Reescrever completamente
+**`src/pages/Dashboard.tsx`** — Reescrever completamente
 
-### Implementação
+### Estrutura
 
-**3 estados gerenciados via `useState`**: `"waiting"` | `"connected"` | `"error"`
+**Header:**
+- Saudação dinâmica ("Bom dia/Boa tarde/Boa noite, [nome]!") usando `useAuth()` para obter `user.user_metadata.name` e `new Date().getHours()` para a saudação
+- Badge status agente (estado local, toggle)
+- Botão "Editar Prompt" → abre Dialog com textarea
 
-**Estado 1 — Aguardando:**
-- Card centralizado (`max-w-lg mx-auto`) com título, subtítulo
-- Placeholder QR Code 256x256 com borda pontilhada e ícone `QrCode` do lucide
-- 3 instruções numeradas
-- Status pulsante: dot amarelo animado + "Aguardando conexão..."
-- Countdown de 60s com `useEffect`/`setInterval`; ao chegar a 0, mostra botão "Gerar Novo QR Code" que reseta o timer
+**4 Cards de Métrica** (grid `grid-cols-2 lg:grid-cols-4`):
+- Mensagens Hoje (47, +12%), Leads (8), Agendamentos (3), Status do Agente (toggle on/off)
+- Cada card: ícone colorido, número grande, label, badge/indicador
+- Dados mockados
 
-**Estado 2 — Conectado:**
-- Checkmark verde com animação pulse
-- Título "WhatsApp Conectado!", número placeholder
-- Progress bar de 3s + redirect automático para `/dashboard` via `useEffect`
+**Gráfico "Mensagens por Dia":**
+- Recharts `AreaChart` com `ResponsiveContainer`
+- 7 dias mockados [12,19,15,25,32,28,47], eixo X dias da semana
+- Gradiente indigo fill, tooltip
 
-**Estado 3 — Erro:**
-- Ícone X vermelho, mensagem de erro, botão "Tentar Novamente" que volta para `"waiting"`
+**Últimas Conversas:**
+- Card com lista de 5 conversas mockadas
+- Avatar com iniciais, nome, preview truncada, timestamp relativo, badge "🔥 Lead"
+- Link "Ver todas →" e click → toast "Em breve"
 
-**Debug:** Botões no rodapé (visíveis só em dev `import.meta.env.DEV`) para alternar entre os 3 estados.
+**Ações Rápidas:**
+- 4 botões: Reconectar WhatsApp (→ /connect), Editar Prompt (→ modal), Compartilhar Link (→ clipboard copy + toast), Fazer Upgrade (→ modal placeholder)
 
-### Ícones lucide usados
-`QrCode`, `CheckCircle2`, `XCircle`, `Smartphone`, `ArrowRight`
+### Componentes usados
+- `Card`, `CardHeader`, `CardTitle`, `CardContent` (existentes)
+- `Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle` (existente)
+- `Button`, `Switch`, `Badge`, `Textarea` (existentes)
+- `AreaChart`, `Area`, `XAxis`, `YAxis`, `CartesianGrid`, `Tooltip`, `ResponsiveContainer` de recharts
+- Ícones lucide: `MessageSquare`, `Users`, `Calendar`, `Zap`, `Pencil`, `Link`, `ArrowUpRight`, `Flame`
+
+### Tudo em um único arquivo
+O Dashboard inteiro será implementado em `src/pages/Dashboard.tsx` para simplicidade, com dados mockados inline.
 
