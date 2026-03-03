@@ -1,45 +1,23 @@
 
 
-## Página de Autenticação (/auth) — Plano
+## A página /auth já está implementada
 
-### Pré-requisito: Conectar Supabase
+A página de autenticação em `src/pages/Auth.tsx` já contém **tudo** que você descreveu:
 
-O projeto ainda não tem Supabase conectado. Antes de implementar, precisamos:
-1. Conectar Supabase ao projeto (via conector Lovable)
-2. Isso criará o client em `src/integrations/supabase/client.ts`
+- **Layout dividido**: painel esquerdo indigo-600 com pattern, logo, headline e 3 benefits (desktop only); formulário no lado direito; mobile mostra só o formulário com logo
+- **Tabs**: "Criar Conta" (default) e "Entrar"
+- **Tab Criar Conta**: nome, e-mail, senha com toggle, botão "Criar Conta Grátis →", separador "ou", Google OAuth, texto de termos
+- **Tab Entrar**: e-mail, senha, "Esqueci minha senha", botão "Entrar →", separador "ou", Google OAuth
+- **Validação**: zod + react-hook-form com feedback em tempo real
+- **Loading states**: spinners nos botões durante submit
+- **Toasts de erro**: via sonner
+- **Redirects**: registro → `/wizard/step-1`, login → `/dashboard`
+- **Google OAuth**: via `lovable.auth.signInWithOAuth("google")`
+- **Reset de senha**: rota `/reset-password` com `ResetPassword.tsx`
+- **Auth guard**: `AuthenticatedLayout` redireciona para `/auth` se não autenticado
+- **AuthContext**: gerencia sessão global com `onAuthStateChange`
 
-### Arquivos a criar/editar
+A infraestrutura (AuthProvider, rotas, guards) já está configurada no `App.tsx`.
 
-**1. `src/integrations/supabase/client.ts`** — Client Supabase (gerado pela conexão)
-
-**2. `src/contexts/AuthContext.tsx`** — Context de autenticação
-- `AuthProvider` com `onAuthStateChange` listener (antes de `getSession`)
-- Expõe `user`, `session`, `loading`, `signOut`
-- Wrap no App.tsx
-
-**3. `src/pages/Auth.tsx`** — Reescrever completamente
-- Layout dividido: esquerda (desktop only) com bg-indigo-600, pattern CSS sutil, logo branca, headline, 3 mini-benefits com ícones (Code, Zap, Shield)
-- Direita: formulário com Tabs "Criar Conta" / "Entrar"
-- Tab Criar Conta: nome, email, senha (com toggle show/hide), botão "Criar Conta Grátis →", separador "ou", botão Google OAuth, texto termos
-- Tab Entrar: email, senha, link "Esqueci minha senha", botão "Entrar →", separador "ou", botão Google
-- Validação com zod + react-hook-form
-- Loading state nos botões
-- Toast de erro via sonner
-- Redirect: registro → `/wizard/step-1`, login → `/dashboard` (simplificado, sem check de agente por agora)
-
-**4. `src/pages/ResetPassword.tsx`** — Página de reset de senha
-- Formulário para nova senha
-- Checa `type=recovery` no URL hash
-- Chama `supabase.auth.updateUser({ password })`
-
-**5. `src/App.tsx`** — Adicionar AuthProvider, rota `/reset-password`, proteger rotas autenticadas
-
-**6. `src/components/layouts/AuthenticatedLayout.tsx`** — Adicionar guard: se não autenticado, redirect para `/auth`
-
-### Comportamento
-- Google OAuth via `supabase.auth.signInWithOAuth({ provider: 'google' })`
-- Sign up com `emailRedirectTo: window.location.origin`
-- Senha com toggle visibility (Eye/EyeOff icons)
-- Validação em tempo real (zod: email válido, senha min 6 chars, nome obrigatório)
-- Mobile: só formulário com logo no topo, sem painel esquerdo
+**Nenhuma alteração é necessária.** Navegue até `/auth` no preview para verificar.
 
