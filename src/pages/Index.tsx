@@ -38,9 +38,11 @@ function WhatsAppMockup() {
   ];
 
   return (
-    <div className="w-full max-w-sm mx-auto rotate-2 hover:rotate-0 transition-transform duration-500">
-      <div className="rounded-2xl border border-border bg-card shadow-2xl overflow-hidden">
-        <div className="bg-success px-4 py-3 flex items-center gap-3">
+    <div className="relative w-full max-w-sm mx-auto animate-float hover:[animation-play-state:paused]">
+      {/* Glow behind mockup */}
+      <div className="absolute -inset-8 bg-gradient-to-br from-emerald-400/20 to-indigo-400/20 blur-3xl rounded-full -z-10" />
+      <div className="rounded-3xl border border-border bg-card shadow-2xl overflow-hidden">
+        <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-3 flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-primary-foreground/20 flex items-center justify-center">
             <Bot className="w-4 h-4 text-success-foreground" />
           </div>
@@ -64,6 +66,28 @@ function WhatsAppMockup() {
         </div>
       </div>
     </div>
+  );
+}
+
+/* ── Navbar ── */
+function Navbar() {
+  return (
+    <nav className="sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b border-slate-100/50">
+      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Bot className="h-5 w-5 text-primary" />
+          <span className="font-semibold text-foreground">Funcionário de IA</span>
+        </div>
+        <div className="hidden md:flex items-center gap-8">
+          <a href="#como-funciona" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Como Funciona</a>
+          <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Preços</a>
+          <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
+          <Button size="sm" asChild className="rounded-xl shadow-sm px-5">
+            <Link to="/auth">Começar Grátis <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
+          </Button>
+        </div>
+      </div>
+    </nav>
   );
 }
 
@@ -179,30 +203,52 @@ const faqs = [
 export default function Index() {
   return (
     <div className="min-h-screen bg-background scroll-smooth">
+      {/* ═══ NAVBAR ═══ */}
+      <Navbar />
+
       {/* ═══ HERO ═══ */}
-      <section className="min-h-[85vh] flex items-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.04] via-primary/[0.06] to-background" />
+      <section className="min-h-[90vh] flex items-center relative overflow-hidden">
+        {/* Premium gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-white via-indigo-50/60 to-violet-50/60" />
+        {/* Grid dots pattern */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: "radial-gradient(circle, hsl(var(--foreground)) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }} />
+        {/* Indigo glow behind mockup */}
+        <div className="absolute top-1/2 right-[15%] -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-indigo-400/[0.08] blur-[120px] pointer-events-none" />
+
         <div className="relative max-w-6xl mx-auto px-6 py-20 w-full">
-          <div className="flex flex-col lg:flex-row items-center gap-16">
+          <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-20">
             <div className="flex-1 text-center lg:text-left space-y-6">
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-0 px-4 py-1.5 text-sm font-medium">
-                ✨ +500 empresários já usam
-              </Badge>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-[1.1]">
-                Seu Funcionário de IA{" "}
+              {/* Social proof badge */}
+              <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary font-medium px-5 py-2 rounded-full text-sm animate-pulse">
+                <Users className="h-4 w-4" />
+                +500 empresários já usam
+              </div>
+
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.1] mb-6">
+                Seu Funcionário{" "}
                 <br className="hidden sm:block" />
-                no WhatsApp em <span className="text-primary">15 Minutos</span>
+                de IA no WhatsApp{" "}
+                <br className="hidden sm:block" />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-500">em 15 Minutos</span>
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0">
+
+              <p className="text-lg text-muted-foreground font-normal max-w-lg mx-auto lg:mx-0">
                 Crie um agente que vende, atende e agenda pelo seu negócio. 24 horas por dia. Sem programar, sem complicação.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-                <Button size="lg" asChild className="rounded-xl px-8 py-6 text-base shadow-sm hover:shadow-md transition-all">
-                  <Link to="/auth">Criar Meu Agente <ArrowRight className="ml-1 h-5 w-5" /></Link>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <Button size="lg" asChild className="group rounded-xl px-8 py-4 text-base font-semibold shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200">
+                  <Link to="/auth">
+                    Criar Meu Agente
+                    <ArrowRight className="ml-1 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
                 </Button>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button size="lg" variant="outline" className="rounded-xl px-8 py-6 text-base">
+                    <Button size="lg" variant="outline" className="rounded-xl px-8 py-4 text-base border-2 border-border">
                       <Play className="mr-2 h-4 w-4" /> Ver em Ação
                     </Button>
                   </DialogTrigger>
@@ -217,7 +263,7 @@ export default function Index() {
                   </DialogContent>
                 </Dialog>
               </div>
-              <p className="text-sm text-muted-foreground/60">Grátis por 7 dias · Sem cartão de crédito</p>
+              <p className="text-sm text-muted-foreground/50 mt-4">Grátis por 7 dias · Sem cartão de crédito</p>
             </div>
             <div className="flex-1 w-full max-w-md lg:max-w-none">
               <WhatsAppMockup />
