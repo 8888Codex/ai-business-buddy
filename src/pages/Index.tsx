@@ -69,28 +69,6 @@ function WhatsAppMockup() {
   );
 }
 
-/* ── Navbar ── */
-function Navbar() {
-  return (
-    <nav className="sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b border-slate-100/50">
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Bot className="h-5 w-5 text-primary" />
-          <span className="font-semibold text-foreground">Funcionário de IA</span>
-        </div>
-        <div className="hidden md:flex items-center gap-8">
-          <a href="#como-funciona" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Como Funciona</a>
-          <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Preços</a>
-          <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
-          <Button size="sm" asChild className="rounded-xl shadow-sm px-5">
-            <Link to="/auth">Começar Grátis <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
-          </Button>
-        </div>
-      </div>
-    </nav>
-  );
-}
-
 /* ── Wizard Demo Mockup ── */
 function WizardDemoMockup() {
   const tones = [
@@ -203,8 +181,6 @@ const faqs = [
 export default function Index() {
   return (
     <div className="min-h-screen bg-background scroll-smooth">
-      {/* ═══ NAVBAR ═══ */}
-      <Navbar />
 
       {/* ═══ HERO ═══ */}
       <section className="min-h-[90vh] flex items-center relative overflow-hidden">
@@ -227,11 +203,10 @@ export default function Index() {
                 +500 empresários já usam
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.1] mb-6">
-                Seu Funcionário{" "}
-                <br className="hidden sm:block" />
-                de IA no WhatsApp{" "}
-                <br className="hidden sm:block" />
+              <h1 className="text-4xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground leading-[1.1] mb-6">
+                Seu Funcionário de IA
+                <br className="hidden lg:block" />
+                {" "}no WhatsApp{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-500">em 15 Minutos</span>
               </h1>
 
