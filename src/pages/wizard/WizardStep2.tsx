@@ -8,10 +8,10 @@ import { toast } from "sonner";
 
 const priceRanges = [
   "Até R$ 100",
-  "R$ 100 a R$ 500",
-  "R$ 500 a R$ 2.000",
-  "R$ 2.000 a R$ 10.000",
-  "Acima de R$ 10.000",
+  "R$ 100 - 500",
+  "R$ 500 - 2k",
+  "R$ 2k - 10k",
+  "R$ 10k+",
   "Variado",
 ];
 
@@ -35,25 +35,34 @@ export default function WizardStep2() {
   };
 
   return (
-    <WizardLayout step={2} title="O Que Você Vende" onContinue={handleContinue}>
+    <WizardLayout
+      step={2}
+      title="O Que Você Oferece"
+      subtitle="Isso ajuda seu agente a falar com propriedade sobre seu negócio"
+      onContinue={handleContinue}
+    >
       <div className="space-y-5">
         <div className="space-y-2">
-          <Label>Produtos ou serviços principais *</Label>
+          <Label className="text-xs uppercase tracking-wider text-slate-500 font-medium">
+            Produtos ou Serviços
+          </Label>
           <Textarea
-            placeholder="Descreva seus principais produtos ou serviços. Ex: Apartamentos de 2 e 3 quartos na região sul, a partir de R$ 280 mil..."
+            placeholder={"Descreva seus principais produtos ou serviços.\n\nEx: Apartamentos de 2 e 3 quartos na região sul, a partir de R$ 280 mil. Condomínio com piscina, academia e playground."}
             value={products}
-            onChange={(e) => setProducts(e.target.value)}
-            className="min-h-[120px]"
+            onChange={(e) => setProducts(e.target.value.slice(0, 500))}
+            className="min-h-[120px] rounded-xl"
           />
-          <p className="text-xs text-muted-foreground text-right">
-            {products.length} caracteres {products.length < 20 && "(mínimo 20)"}
+          <p className="text-xs text-slate-400 text-right">
+            {products.length}/500
           </p>
         </div>
 
         <div className="space-y-2">
-          <Label>Faixa de preço *</Label>
+          <Label className="text-xs uppercase tracking-wider text-slate-500 font-medium">
+            Faixa de Preço
+          </Label>
           <Select value={priceRange} onValueChange={setPriceRange}>
-            <SelectTrigger>
+            <SelectTrigger className="rounded-xl">
               <SelectValue placeholder="Selecione a faixa de preço" />
             </SelectTrigger>
             <SelectContent>
@@ -65,12 +74,19 @@ export default function WizardStep2() {
         </div>
 
         <div className="space-y-2">
-          <Label>Diferencial <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+          <div className="flex items-center gap-2">
+            <Label className="text-xs uppercase tracking-wider text-slate-500 font-medium">
+              Diferencial
+            </Label>
+            <span className="bg-slate-100 text-slate-500 rounded-full px-2 py-0.5 text-xs">
+              Opcional
+            </span>
+          </div>
           <Textarea
-            placeholder="O que te diferencia da concorrência?"
+            placeholder="O que te diferencia? Ex: 15 anos de mercado, melhor pós-venda da região"
             value={differentiator}
             onChange={(e) => setDifferentiator(e.target.value)}
-            className="min-h-[80px]"
+            className="min-h-[60px] rounded-xl"
           />
         </div>
       </div>

@@ -12,37 +12,36 @@ const tones = [
     id: "formal",
     label: "Formal",
     icon: Briefcase,
-    desc: "Linguagem corporativa e respeitosa",
     example: '"Prezado(a), como posso ajudá-lo(a)?"',
+    desc: "Corporativo e respeitoso",
   },
   {
     id: "friendly",
     label: "Amigável",
     icon: Smile,
-    desc: "Próximo e descontraído",
-    example: '"Oi! Tudo bem? Como posso te ajudar?"',
+    example: '"Oi! Tudo bem? Como posso te ajudar? 😊"',
+    desc: "Próximo e acolhedor",
   },
   {
     id: "technical",
     label: "Técnico",
     icon: Settings,
-    desc: "Preciso e detalhado",
-    example: '"Olá. Posso fornecer informações técnicas sobre nossos serviços."',
+    example: '"Olá. Posso fornecer informações detalhadas."',
+    desc: "Preciso e objetivo",
   },
   {
     id: "persuasive",
     label: "Persuasivo",
     icon: Megaphone,
-    desc: "Orientado a vendas",
-    example: '"Que bom que você entrou em contato! Tenho uma oportunidade incrível para você."',
+    example: '"Que bom que você entrou em contato! Tenho algo especial."',
+    desc: "Orientado a resultados",
   },
 ];
 
 function suggestAgentName(companyName: string): string {
   if (!companyName) return "Assistente IA";
   const words = companyName.trim().split(/\s+/);
-  const last = words[words.length - 1];
-  return `${last} IA`;
+  return words[words.length - 1];
 }
 
 export default function WizardStep3() {
@@ -72,10 +71,17 @@ export default function WizardStep3() {
   };
 
   return (
-    <WizardLayout step={3} title="Personalidade do Agente" onContinue={handleContinue}>
+    <WizardLayout
+      step={3}
+      title="Personalidade do Agente"
+      subtitle="Escolha como seu agente se comunica"
+      onContinue={handleContinue}
+    >
       <div className="space-y-6">
         <div className="space-y-3">
-          <Label>Tom de voz *</Label>
+          <Label className="text-xs uppercase tracking-wider text-slate-500 font-medium">
+            Tom de Voz
+          </Label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {tones.map((t) => {
               const Icon = t.icon;
@@ -86,18 +92,18 @@ export default function WizardStep3() {
                   type="button"
                   onClick={() => setTone(t.id)}
                   className={cn(
-                    "flex flex-col items-start gap-1 rounded-xl border-2 p-4 text-left transition-all",
+                    "flex flex-col items-start gap-1.5 rounded-xl border-2 p-5 text-left transition-all cursor-pointer",
                     selected
-                      ? "border-indigo-500 bg-indigo-50"
-                      : "border-border hover:border-indigo-300"
+                      ? "border-indigo-500 bg-indigo-50 ring-2 ring-indigo-500/20"
+                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
                   )}
                 >
                   <div className="flex items-center gap-2">
-                    <Icon className="h-5 w-5 text-indigo-500" />
-                    <span className="font-medium">{t.label}</span>
+                    <Icon className={cn("h-5 w-5", selected ? "text-indigo-600" : "text-slate-600")} />
+                    <span className="font-semibold text-slate-900">{t.label}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">{t.desc}</p>
-                  <p className="text-xs italic text-muted-foreground mt-1">{t.example}</p>
+                  <p className="text-sm italic text-slate-500">{t.example}</p>
+                  <p className="text-xs text-slate-400">{t.desc}</p>
                 </button>
               );
             })}
@@ -105,13 +111,18 @@ export default function WizardStep3() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="agentName">Nome do agente *</Label>
+          <Label className="text-xs uppercase tracking-wider text-slate-500 font-medium">
+            Como Seu Agente Se Chama?
+          </Label>
           <Input
-            id="agentName"
-            placeholder="Ex: Lucas IA"
+            placeholder="Ex: Lucas"
             value={agentName}
             onChange={(e) => setAgentName(e.target.value)}
+            className="rounded-xl"
           />
+          <p className="text-xs text-slate-400">
+            Seus clientes vão interagir com esse nome
+          </p>
         </div>
       </div>
     </WizardLayout>
