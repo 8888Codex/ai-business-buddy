@@ -1,46 +1,45 @@
 
 
-## Landing Page Completa — Plano de Implementação
+## Página de Autenticação (/auth) — Plano
 
-### Estrutura de Arquivos
+### Pré-requisito: Conectar Supabase
 
-Reescrever `src/pages/Index.tsx` com todas as 8 seções + footer. Criar um hook `useScrollAnimation` para fade-in ao scroll via Intersection Observer. Criar um componente `WhatsAppMockup` para o mockup de chat no hero.
+O projeto ainda não tem Supabase conectado. Antes de implementar, precisamos:
+1. Conectar Supabase ao projeto (via conector Lovable)
+2. Isso criará o client em `src/integrations/supabase/client.ts`
 
-### Seções
+### Arquivos a criar/editar
 
-1. **Hero** — Gradiente indigo-50→white, headline + sub-headline, 2 botões (CTA → /auth, "Ver Demo" → Dialog com placeholder de vídeo), componente WhatsAppMockup ao lado direito (desktop) / abaixo (mobile)
+**1. `src/integrations/supabase/client.ts`** — Client Supabase (gerado pela conexão)
 
-2. **Como Funciona** — 3 cards com numeração circular indigo, ícones (ClipboardList, Bot, QrCode), títulos e descrições
+**2. `src/contexts/AuthContext.tsx`** — Context de autenticação
+- `AuthProvider` com `onAuthStateChange` listener (antes de `getSession`)
+- Expõe `user`, `session`, `loading`, `signOut`
+- Wrap no App.tsx
 
-3. **Benefícios** — Grid 2x3 (1 col mobile) com ícones (Clock, Sun, CheckCircle, Filter, Calendar, Coins) + título + descrição
+**3. `src/pages/Auth.tsx`** — Reescrever completamente
+- Layout dividido: esquerda (desktop only) com bg-indigo-600, pattern CSS sutil, logo branca, headline, 3 mini-benefits com ícones (Code, Zap, Shield)
+- Direita: formulário com Tabs "Criar Conta" / "Entrar"
+- Tab Criar Conta: nome, email, senha (com toggle show/hide), botão "Criar Conta Grátis →", separador "ou", botão Google OAuth, texto termos
+- Tab Entrar: email, senha, link "Esqueci minha senha", botão "Entrar →", separador "ou", botão Google
+- Validação com zod + react-hook-form
+- Loading state nos botões
+- Toast de erro via sonner
+- Redirect: registro → `/wizard/step-1`, login → `/dashboard` (simplificado, sem check de agente por agora)
 
-4. **Prova Social** — Texto sobre Cognita, badges de setores, counters animados (useEffect com incremento) para 45+, 10.000+, R$ 2M+
+**4. `src/pages/ResetPassword.tsx`** — Página de reset de senha
+- Formulário para nova senha
+- Checa `type=recovery` no URL hash
+- Chama `supabase.auth.updateUser({ password })`
 
-5. **Pricing** — 3 cards (Starter R$97, PRO R$197 destacado, Business R$497), badges "7 dias grátis" e "Mais popular", botões CTA
+**5. `src/App.tsx`** — Adicionar AuthProvider, rota `/reset-password`, proteger rotas autenticadas
 
-6. **Garantia** — Card com borda verde (border-success), ícone Shield, 3 itens da garantia tripla
+**6. `src/components/layouts/AuthenticatedLayout.tsx`** — Adicionar guard: se não autenticado, redirect para `/auth`
 
-7. **FAQ** — Accordion com 6 perguntas/respostas usando componente Accordion existente
-
-8. **CTA Final** — Background bg-primary, texto branco, botão branco → /auth
-
-9. **Footer** — Logo, links placeholder (Termos, Privacidade, Contato), copyright Cognita 2026
-
-### Animações
-
-- Hook `useScrollAnimation`: usa IntersectionObserver para adicionar classe de fade-in quando elemento entra no viewport
-- Adicionar keyframes `fade-in` e `count-up` no tailwind.config.ts
-- Counters animados com useEffect + requestAnimationFrame
-
-### Componentes Auxiliares
-
-- `WhatsAppMockup` — inline no Index.tsx, simula tela de chat com bolhas de mensagem estilizadas (verde para agente, branco para cliente)
-- Dialog do shadcn para modal de vídeo demo
-
-### Responsividade
-
-- Hero: flex-col mobile, flex-row desktop
-- Cards: grid 1 col → 3 cols
-- Benefícios: grid 1 col → 2 cols → 3 cols
-- Pricing: grid 1 col → 3 cols
+### Comportamento
+- Google OAuth via `supabase.auth.signInWithOAuth({ provider: 'google' })`
+- Sign up com `emailRedirectTo: window.location.origin`
+- Senha com toggle visibility (Eye/EyeOff icons)
+- Validação em tempo real (zod: email válido, senha min 6 chars, nome obrigatório)
+- Mobile: só formulário com logo no topo, sem painel esquerdo
 
