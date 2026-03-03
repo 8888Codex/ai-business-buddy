@@ -1,159 +1,67 @@
-Crie um web app SaaS premium chamado "Funcionário de IA" — uma plataforma que permite pequenos empresários criarem agentes de IA para WhatsApp em 15 minutos, sem programar.
 
-O design deve transmitir: CONFIANÇA, SIMPLICIDADE e TECNOLOGIA ACESSÍVEL. Não deve parecer um template. Deve parecer um produto de uma empresa de tecnologia séria que cobra R$ 30-75 mil por implementações customizadas — e agora oferece uma versão self-service.
 
-REFERÊNCIAS DE DESIGN (inspiração, não cópia):
+## Landing Page Premium — Reescrita Completa
 
-- [Linear.app](http://Linear.app) (clean, sofisticado, espaçamento generoso)
+### Arquivos a editar
 
-- [Vercel.com](http://Vercel.com) (minimalismo tech com personalidade)
+**1. `src/pages/Index.tsx`** — Reescrever completamente (~600 linhas)
 
-- [Notion.so](http://Notion.so) (acessível sem ser infantil)
+**2. `src/components/layouts/PublicLayout.tsx`** — Adicionar navbar fixa
 
-- [Cal.com](http://Cal.com) (SaaS moderno, dashboard limpo)
+### Estrutura da Página
 
-STACK: React + TypeScript + Tailwind CSS + React Router + Supabase + Recharts
+**Navbar (em PublicLayout.tsx):**
+- Fixo no topo: `fixed top-0 w-full z-50 bg-white/80 backdrop-blur-lg border-b border-slate-100`
+- Logo "✦ Funcionário de IA", links centrais com scroll suave (`#como-funciona`, `#pricing`, `#faq`), botão CTA
+- Mobile: menu hambúrguer com Sheet (componente existente)
+- Lógica: detectar rota `/` para mostrar links de seção; outras rotas públicas mostram apenas logo + CTA
 
-DESIGN SYSTEM PREMIUM:
+**Seção 1 — Hero** (`min-h-[85vh]`, pt extra para compensar navbar fixa):
+- Badge "✨ +500 empresários já usam"
+- Título em 2 linhas, "15 Minutos" em `text-primary`
+- Subtítulo, 2 botões (Criar Meu Agente + Ver em Ação com dialog)
+- Texto "Grátis por 7 dias · Sem cartão"
+- WhatsApp mockup à direita com mensagens do segmento imobiliário, rotação `rotate-2`, sombra `shadow-2xl`
 
-Cores:
+**Seção 2 — Logos de Confiança** (`py-16 bg-secondary`):
+- Caption uppercase tracking-widest
+- 6 ícones Lucide (Building2, Sun, Car, Heart, ShoppingBag, Briefcase) em grayscale com labels
 
-- Primária: #6366F1 (indigo-500) — confiança, tecnologia
+**Seção 3 — Como Funciona** (`py-24`, id="como-funciona"):
+- Título + subtítulo
+- 3 cards com número watermark ("01"/"02"/"03" em text-6xl text-primary/10), ícone em rounded-2xl bg-primary/10, título, descrição
+- Hover: shadow-md + -translate-y-1
 
-- Primária hover: #4F46E5 (indigo-600)
+**Seção 4 — Demonstração Visual** (`py-24 bg-secondary`):
+- Card max-w-4xl simulando wizard step 3 (personalidade do agente) com progress bar, 4 cards de tom de voz, botões Voltar/Continuar — tudo estático/visual
 
-- Primária light: #EEF2FF (indigo-50) — backgrounds sutis
+**Seção 5 — Benefícios** (`py-24`):
+- Título centralizado
+- Grid 3x2, layout limpo sem cards: ícone em circle + título bold + descrição
+- Ícones: Zap, Clock, Shield, Users, Calendar, TrendingDown
 
-- Sucesso: #10B981 (emerald-500)
+**Seção 6 — Pricing** (`py-24 bg-secondary`, id="pricing"):
+- Título + subtítulo
+- 3 cards: Starter (badge emerald "7 dias grátis"), PRO (destaque border-2 border-primary, badge absolute "Mais Popular"), Business
+- Features com checks verdes, botões adequados
+- Texto rodapé
 
-- Erro: #EF4444 (red-500)
+**Seção 7 — Garantia** (`py-24`):
+- Card centralizado bg-emerald-50 border-emerald-200 com ShieldCheck, 3 items, texto rodapé
 
-- Alerta: #F59E0B (amber-500)
+**Seção 8 — FAQ** (`py-24 bg-secondary`, id="faq"):
+- Accordion com 6 perguntas, max-w-2xl
 
-- Background: #FFFFFF (white) para conteúdo principal
+**Seção 9 — CTA Final** (`py-24`, gradiente indigo→violet com pattern dots):
+- Título branco, subtítulo indigo-100, botão branco, texto indigo-200
 
-- Background secundário: #F8FAFC (slate-50) para áreas neutras
+**Footer** (`py-12 bg-slate-900`):
+- Logo, links em 3 colunas (Produto, Legal, Contato), copyright
 
-- Background sutil: #F1F5F9 (slate-100) para cards hover
+### Detalhes técnicos
+- Scroll suave via `scroll-behavior: smooth` no CSS + anchor links `#id`
+- AnimatedSection reutilizado para fade-in com IntersectionObserver
+- Todas as seções com `py-24` e `max-w-6xl mx-auto px-6`
+- Navbar com `useLocation` para condicionar links de seção
+- Mobile hambúrguer usa Sheet existente
 
-- Texto primário: #0F172A (slate-900) — forte, legível
-
-- Texto secundário: #475569 (slate-600)
-
-- Texto terciário: #94A3B8 (slate-400) — labels, placeholders
-
-- Borda: #E2E8F0 (slate-200)
-
-- Borda hover: #CBD5E1 (slate-300)
-
-- Gradiente hero: de indigo-600 via indigo-500 para violet-500
-
-Tipografia:
-
-- Font family: "Inter" do Google Fonts
-
-- Heading 1 (h1): 48px/56px, font-weight 700, tracking-tight (-0.02em)
-
-- Heading 2 (h2): 32px/40px, font-weight 700, tracking-tight
-
-- Heading 3 (h3): 24px/32px, font-weight 600
-
-- Body: 16px/24px, font-weight 400
-
-- Body small: 14px/20px, font-weight 400
-
-- Caption: 12px/16px, font-weight 500, uppercase, letter-spacing 0.05em — para labels
-
-Espaçamento (ritmo vertical):
-
-- Seções: 96px (py-24) entre seções na landing page
-
-- Cards: 24px padding interno (p-6)
-
-- Entre elementos: 16px (gap-4) como padrão
-
-- Entre seções de form: 32px (gap-8)
-
-- Margem do conteúdo: max-w-6xl mx-auto px-6
-
-Componentes:
-
-- Cards: bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200
-
-- Cards destaque: bg-white border-2 border-indigo-500 rounded-2xl shadow-lg
-
-- Botões primários: bg-indigo-500 hover:bg-indigo-600 text-white font-medium px-6 py-3 rounded-xl shadow-sm hover:shadow-md transition-all duration-200
-
-- Botões secundários: bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-medium px-6 py-3 rounded-xl transition-all duration-200
-
-- Botões ghost: text-slate-600 hover:text-slate-900 hover:bg-slate-100 px-4 py-2 rounded-lg
-
-- Inputs: bg-white border border-slate-300 rounded-xl px-4 py-3.5 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200
-
-- Selects/Dropdowns: mesmo estilo dos inputs, com chevron-down customizado
-
-- Badges: inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
-
-- Tooltips: bg-slate-900 text-white text-sm px-3 py-2 rounded-lg shadow-lg
-
-- Dividers: border-t border-slate-100 (sutis, quase invisíveis)
-
-Microinterações:
-
-- Hover em cards: translate-y por -2px + shadow-md (sutil elevação)
-
-- Click em botões: scale(0.98) por 100ms
-
-- Transição entre páginas: fade + slide (200ms ease-out)
-
-- Loading states: skeleton com shimmer animation (não spinners genéricos)
-
-- Toasts: slide-in da direita com auto-dismiss em 4s
-
-Ícones:
-
-- Lucide React (consistente, clean, peso visual correto)
-
-- Tamanho padrão: 20px (w-5 h-5) para inline, 24px (w-6 h-6) para standalone
-
-- Cor: currentColor (herda do texto pai)
-
-Mobile:
-
-- Mobile-first obrigatório
-
-- Touch targets mínimo 44px
-
-- Sidebar vira bottom navigation no mobile com 4 ícones: Dashboard, Conversas, Agente, Config
-
-- Cards empilham verticalmente
-
-- Fontes de heading reduzem 20% no mobile
-
-ROTAS:
-
-/ → Landing Page (pública)
-
-/auth → Login e Registro (pública)
-
-/wizard/step-1 até /wizard/step-6 → Wizard de criação (autenticado)
-
-/connect → Conectar WhatsApp (autenticado)
-
-/dashboard → Dashboard Principal (autenticado)
-
-/conversations → Histórico de Conversas (autenticado)
-
-/settings → Configurações (autenticado)
-
-LAYOUT:
-
-- Páginas públicas: sem sidebar, layout full-width com max-w-6xl
-
-- Páginas autenticadas: sidebar fixa à esquerda (240px wide, bg-white, border-r border-slate-200) + área de conteúdo com bg-slate-50
-
-- Sidebar items: ícone + label, active state com bg-indigo-50 text-indigo-700, hover com bg-slate-50
-
-- Logo no topo da sidebar: "✦ Funcionário de IA" (usar caractere ✦ como ícone-logo ou um ícone de bot/zap de Lucide)
-
-Comece criando a estrutura do projeto com todas as rotas, o layout global com sidebar premium, e páginas placeholder. Foque na qualidade visual do layout — ele define a percepção do produto inteiro.
