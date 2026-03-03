@@ -1,56 +1,32 @@
 
 
-## Wizard de Criação de Agente — 6 Steps
+## Página de Conexão WhatsApp (/connect)
 
-### Arquivos a criar/editar
+### Arquivo a editar
 
-**1. `src/contexts/WizardContext.tsx`** — Context para estado do wizard
-- State com dados de todos os 6 steps (empresa, segmento, horário, produtos, preço, diferencial, tom, nome do agente, objetivos, ação lead quente, FAQs, restrições, extras, prompt editado)
-- Funções `updateStep(stepNumber, data)` e `getStepData(stepNumber)`
-- Dados persistem enquanto o context está montado (navegação entre steps)
+**`src/pages/Connect.tsx`** — Reescrever completamente
 
-**2. `src/components/wizard/WizardLayout.tsx`** — Layout compartilhado
-- Progress bar (barra horizontal colorida, step/6)
-- Label "Passo X de 6 — Título"
-- Container `max-w-2xl mx-auto`
-- Footer com botões Voltar/Continuar (+ Pular no step 5)
-- Animação fade entre steps
-- Validação antes de avançar
+### Implementação
 
-**3. `src/pages/wizard/WizardStep1.tsx`** — Sobre Seu Negócio
-- Input nome empresa, Select segmento (8 opções), 2 Selects horário (06-23h)
-- Ícone decorativo Building
+**3 estados gerenciados via `useState`**: `"waiting"` | `"connected"` | `"error"`
 
-**4. `src/pages/wizard/WizardStep2.tsx`** — O Que Você Vende
-- Textarea produtos (min 20 chars, character counter), Select faixa preço, Textarea diferencial
+**Estado 1 — Aguardando:**
+- Card centralizado (`max-w-lg mx-auto`) com título, subtítulo
+- Placeholder QR Code 256x256 com borda pontilhada e ícone `QrCode` do lucide
+- 3 instruções numeradas
+- Status pulsante: dot amarelo animado + "Aguardando conexão..."
+- Countdown de 60s com `useEffect`/`setInterval`; ao chegar a 0, mostra botão "Gerar Novo QR Code" que reseta o timer
 
-**5. `src/pages/wizard/WizardStep3.tsx`** — Personalidade do Agente
-- Grid 2x2 de cards clicáveis (Formal/Amigável/Técnico/Persuasivo) com ícone, título, descrição, exemplo
-- Card selecionado: `border-indigo-500 bg-indigo-50`
-- Input nome agente pré-preenchido (derivado do nome empresa step 1)
+**Estado 2 — Conectado:**
+- Checkmark verde com animação pulse
+- Título "WhatsApp Conectado!", número placeholder
+- Progress bar de 3s + redirect automático para `/dashboard` via `useEffect`
 
-**6. `src/pages/wizard/WizardStep4.tsx`** — Missão do Agente
-- 4 cards clicáveis (multi-select até 2): Vender/Atender/Agendar/Qualificar
-- Select ação lead quente (3 opções)
+**Estado 3 — Erro:**
+- Ícone X vermelho, mensagem de erro, botão "Tentar Novamente" que volta para `"waiting"`
 
-**7. `src/pages/wizard/WizardStep5.tsx`** — Regras Especiais
-- Badge "Opcional" no topo
-- 3 textareas opcionais (FAQs, restrições, extras)
-- Botão "Pular →" ao lado de "Continuar →"
+**Debug:** Botões no rodapé (visíveis só em dev `import.meta.env.DEV`) para alternar entre os 3 estados.
 
-**8. `src/pages/wizard/WizardStep6.tsx`** — Agente Pronto
-- Ícone confetti, título celebração
-- Card com prompt gerado (template combinando dados de todos steps)
-- Botão Editar → transforma em textarea, mostra badge "Prompt personalizado"
-- Botão principal "Conectar WhatsApp →" → navega para `/connect`
-- Botão secundário "Salvar e conectar depois" → navega para `/dashboard`
-
-**9. `src/App.tsx`** — Wrap wizard routes com `WizardProvider`
-
-### Detalhes técnicos
-- Estado gerenciado via React Context (sem persistência em DB por enquanto)
-- Navegação com `useNavigate` entre `/wizard/step-{1-6}`
-- Validação com estado local (required fields checked antes de avançar)
-- Geração do prompt no step 6: template string concatenando dados dos steps
-- Transições com `animate-fade-in` (já existe no tailwind config)
+### Ícones lucide usados
+`QrCode`, `CheckCircle2`, `XCircle`, `Smartphone`, `ArrowRight`
 
