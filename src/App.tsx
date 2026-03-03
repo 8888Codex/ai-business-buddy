@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { WizardProvider } from "@/contexts/WizardContext";
 
 import PublicLayout from "@/components/layouts/PublicLayout";
 import AuthenticatedLayout from "@/components/layouts/AuthenticatedLayout";
@@ -46,12 +47,25 @@ const App = () => (
               <Route path="/conversations" element={<Conversations />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/connect" element={<Connect />} />
-              <Route path="/wizard/step-1" element={<WizardStep1 />} />
-              <Route path="/wizard/step-2" element={<WizardStep2 />} />
-              <Route path="/wizard/step-3" element={<WizardStep3 />} />
-              <Route path="/wizard/step-4" element={<WizardStep4 />} />
-              <Route path="/wizard/step-5" element={<WizardStep5 />} />
-              <Route path="/wizard/step-6" element={<WizardStep6 />} />
+            </Route>
+
+            {/* Wizard routes — wrapped with WizardProvider */}
+            <Route element={<AuthenticatedLayout />}>
+              <Route
+                path="/wizard/*"
+                element={
+                  <WizardProvider>
+                    <Routes>
+                      <Route path="step-1" element={<WizardStep1 />} />
+                      <Route path="step-2" element={<WizardStep2 />} />
+                      <Route path="step-3" element={<WizardStep3 />} />
+                      <Route path="step-4" element={<WizardStep4 />} />
+                      <Route path="step-5" element={<WizardStep5 />} />
+                      <Route path="step-6" element={<WizardStep6 />} />
+                    </Routes>
+                  </WizardProvider>
+                }
+              />
             </Route>
 
             <Route path="*" element={<NotFound />} />
