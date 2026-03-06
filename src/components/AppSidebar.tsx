@@ -1,13 +1,29 @@
-import { LayoutDashboard, MessageSquare, Settings, Plus, Bot } from "lucide-react";
+import { useState } from "react";
+import {
+  LayoutDashboard,
+  MessageSquare,
+  Settings,
+  Plus,
+  Bot,
+  RefreshCw,
+  Share2,
+  Zap,
+} from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAgent } from "@/contexts/AgentContext";
+import { useToast } from "@/hooks/use-toast";
+import { ReconnectWhatsAppDialog } from "@/components/ReconnectWhatsAppDialog";
+import { UpgradeDialog } from "@/components/UpgradeDialog";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -15,19 +31,74 @@ import {
   SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Meus Agentes", url: "/agents", icon: Bot },
   { title: "Conversas", url: "/conversations", icon: MessageSquare },
   { title: "Configurações", url: "/settings", icon: Settings },
 ];
 
+const PLAN_LABELS: Record<string, string> = {
+  trial: "Plano Trial",
+  starter: "Plano Starter",
+  pro: "Plano Pro",
+  business: "Plano Business",
+};
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const location = useLocation();
+  const { user } = useAuth();
+  const { agent } = useAgent();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [reconnectOpen, setReconnectOpen] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+
+  const planLabel = user?.plan ? (PLAN_LABELS[user.plan] ?? user.plan) : "Plano Gratuito";
+
+  const handleShareLink = async () => {
+    const phone = agent?.whatsapp_phone ?? null;
+    if (!phone) {
+      toast({ title: "WhatsApp não conectado", description: "Conecte o WhatsApp para compartilhar seu link.", variant: "destructive" });
+      return;
+    }
+    await navigator.clipboard.writeText(`https://wa.me/${phone}`);
+    toast({ title: "Link copiado!", description: `wa.me/${phone}` });
+  };
+
+  const quickActions = [
+    {
+      icon: Settings,
+      label: "Editar Prompt",
+      onClick: () => navigate("/agents"),
+    },
+    {
+      icon: RefreshCw,
+      label: "Reconectar WhatsApp",
+      onClick: () => setReconnectOpen(true),
+    },
+    {
+      icon: Share2,
+      label: "Compartilhar Link",
+      onClick: handleShareLink,
+    },
+    {
+      icon: Zap,
+      label: "Fazer Upgrade",
+      onClick: () => setUpgradeOpen(true),
+      highlight: true,
+    },
+  ];
 
   return (
+    <>
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
@@ -41,6 +112,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
+        {/* Navegação principal */}
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -62,12 +134,58 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Ações rápidas */}
+        <SidebarGroup>
+          {!collapsed && (
+            <SidebarGroupLabel className="text-xs text-muted-foreground px-2 mb-1">
+              Ações Rápidas
+            </SidebarGroupLabel>
+          )}
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {quickActions.map((action) => (
+                <SidebarMenuItem key={action.label}>
+                  {collapsed ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton
+                          onClick={action.onClick}
+                          className={
+                            action.highlight
+                              ? "text-primary hover:bg-primary/10"
+                              : "hover:bg-accent/50"
+                          }
+                        >
+                          <action.icon className="h-4 w-4 shrink-0" />
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">{action.label}</TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <SidebarMenuButton
+                      onClick={action.onClick}
+                      className={
+                        action.highlight
+                          ? "text-primary hover:bg-primary/10"
+                          : "hover:bg-accent/50"
+                      }
+                    >
+                      <action.icon className="mr-2 h-4 w-4 shrink-0" />
+                      <span>{action.label}</span>
+                    </SidebarMenuButton>
+                  )}
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="p-4 space-y-3">
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">Plano Gratuito</Badge>
+            <Badge variant="secondary" className="text-xs">{planLabel}</Badge>
           </div>
         )}
         <Button
@@ -82,5 +200,9 @@ export function AppSidebar() {
         </Button>
       </SidebarFooter>
     </Sidebar>
+
+    <ReconnectWhatsAppDialog open={reconnectOpen} onOpenChange={setReconnectOpen} />
+    <UpgradeDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} />
+    </>
   );
 }

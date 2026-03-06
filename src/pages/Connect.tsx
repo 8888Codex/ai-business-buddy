@@ -1,30 +1,127 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useWizard } from "@/contexts/WizardContext";
+import {
+  createOrUpdateBusiness,
+  createOrGetAgent,
+  createWhatsAppInstance,
+  getWhatsAppStatus,
+  reconnectWhatsApp,
+} from "@/services/api";
 import { Button } from "@/components/ui/button";
-import { QrCode, CheckCircle2, XCircle, Smartphone, ArrowRight, RefreshCw } from "lucide-react";
+import {
+  CheckCircle2,
+  XCircle,
+  Smartphone,
+  ArrowRight,
+  RefreshCw,
+  Loader2,
+} from "lucide-react";
 
-type ConnectionState = "waiting" | "connected" | "error";
+type ConnectionState = "saving" | "waiting" | "connected" | "error";
 
 const TIMER_DURATION = 60;
+const POLL_INTERVAL_MS = 3_000;
 const CIRCLE_RADIUS = 40;
 const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
 
 export default function Connect() {
   const navigate = useNavigate();
-  const [state, setState] = useState<ConnectionState>("waiting");
+  const { data: wizardData } = useWizard();
+
+  const [state, setState] = useState<ConnectionState>("saving");
   const [countdown, setCountdown] = useState(TIMER_DURATION);
   const [redirectProgress, setRedirectProgress] = useState(0);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [qrCode, setQrCode] = useState<string | null>(null);
+  const [connectedPhone, setConnectedPhone] = useState<string | null>(null);
 
+  // Refs para evitar race conditions
+  const agentIdRef = useRef<string | null>(null);
+  const instanceIdRef = useRef<string | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Redireciona para wizard se dados não estão preenchidos
+  useEffect(() => {
+    if (!wizardData.companyName) {
+      navigate("/wizard/step-1");
+    }
+  }, [wizardData.companyName, navigate]);
+
+  // ── Salvar business + agent + criar instância WhatsApp ──────────────────────
+  useEffect(() => {
+    if (state !== "saving" || !wizardData.companyName) return;
+
+    async function setup() {
+      try {
+        // 1. Business
+        const businessId = await createOrUpdateBusiness({
+          name: wizardData.companyName,
+          segment: wizardData.segment,
+          hours_open: wizardData.openTime,
+          hours_close: wizardData.closeTime,
+        });
+
+        // 2. Agent (cria ou reutiliza existente se plano atingiu limite)
+        const agent = await createOrGetAgent({
+          name: wizardData.agentName || `Assistente ${wizardData.companyName}`,
+          type: "attendant",
+          system_prompt: wizardData.generatedPrompt || undefined,
+          business_id: businessId,
+          objectives: wizardData.objectives,
+          lead_action: wizardData.hotLeadAction || undefined,
+        });
+        agentIdRef.current = agent.id;
+
+        // 3. Criar instância WhatsApp → recebe QR code real
+        const instance = await createWhatsAppInstance(agent.id);
+        instanceIdRef.current = instance.instance_id;
+        setQrCode(instance.qr_code);
+        setState("waiting");
+      } catch (err: any) {
+        setErrorMessage(err.message || "Erro ao configurar agente");
+        setState("error");
+      }
+    }
+
+    setup();
+  }, [state, wizardData]);
+
+  // ── Polling de status ───────────────────────────────────────────────────────
+  useEffect(() => {
+    if (state !== "waiting") return;
+
+    pollRef.current = setInterval(async () => {
+      if (!instanceIdRef.current) return;
+      try {
+        const status = await getWhatsAppStatus(instanceIdRef.current);
+        if (status.connected) {
+          clearInterval(pollRef.current!);
+          setConnectedPhone(status.phone);
+          setState("connected");
+        }
+      } catch {
+        // ignora erros transitórios de polling
+      }
+    }, POLL_INTERVAL_MS);
+
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [state]);
+
+  // ── Countdown ───────────────────────────────────────────────────────────────
   useEffect(() => {
     if (state !== "waiting" || countdown <= 0) return;
     const interval = setInterval(() => setCountdown((c) => c - 1), 1000);
     return () => clearInterval(interval);
   }, [state, countdown]);
 
+  // ── Redirect após conectar ──────────────────────────────────────────────────
   useEffect(() => {
     if (state !== "connected") return;
     const start = Date.now();
-    const duration = 3000;
+    const duration = 3_000;
     const interval = setInterval(() => {
       const elapsed = Date.now() - start;
       setRedirectProgress(Math.min((elapsed / duration) * 100, 100));
@@ -36,16 +133,28 @@ export default function Connect() {
     return () => clearInterval(interval);
   }, [state, navigate]);
 
-  const handleRetry = useCallback(() => {
+  // ── Gerar novo QR code ──────────────────────────────────────────────────────
+  const handleRetry = useCallback(async () => {
+    if (!agentIdRef.current) return;
+    setQrCode(null);
     setCountdown(TIMER_DURATION);
-    setState("waiting");
+    try {
+      const instance = await reconnectWhatsApp(agentIdRef.current);
+      instanceIdRef.current = instance.instance_id;
+      setQrCode(instance.qr_code);
+      setState("waiting");
+    } catch (err: any) {
+      setErrorMessage(err.message || "Erro ao gerar novo QR code");
+      setState("error");
+    }
   }, []);
 
   const minutes = Math.floor(countdown / 60);
   const seconds = countdown % 60;
   const timerOffset = CIRCLE_CIRCUMFERENCE * (1 - countdown / TIMER_DURATION);
 
-  const cardBase = "bg-white rounded-2xl shadow-sm border p-8 text-center max-w-md mx-auto transition-all duration-500";
+  const cardBase =
+    "bg-white rounded-2xl shadow-sm border p-8 text-center max-w-md mx-auto transition-all duration-500";
   const cardClass =
     state === "connected"
       ? `${cardBase} border-emerald-500 bg-emerald-50`
@@ -56,6 +165,22 @@ export default function Connect() {
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4 py-16 animate-fade-in">
       <div className={cardClass}>
+
+        {/* ── SAVING ── */}
+        {state === "saving" && (
+          <div className="space-y-6">
+            <Loader2 className="w-10 h-10 text-indigo-500 mx-auto animate-spin" />
+            <div>
+              <h1 className="text-xl font-bold text-slate-900">Salvando seu agente...</h1>
+              <p className="text-slate-500 text-sm mt-1">Aguarde enquanto configuramos tudo</p>
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+              <span className="text-sm text-slate-400">Conectando ao servidor...</span>
+            </div>
+          </div>
+        )}
+
         {/* ── WAITING ── */}
         {state === "waiting" && (
           <div className="space-y-6">
@@ -67,18 +192,23 @@ export default function Connect() {
 
             {countdown > 0 ? (
               <>
-                {/* QR placeholder */}
-                <div className="mx-auto w-[250px] h-[250px] border-2 border-dashed border-slate-300 rounded-2xl bg-slate-50 flex items-center justify-center">
-                  <QrCode className="w-20 h-20 text-slate-300" />
+                {/* QR Code real ou loading */}
+                <div className="mx-auto w-[220px] h-[220px] border-2 border-dashed border-slate-300 rounded-2xl bg-slate-50 flex items-center justify-center overflow-hidden">
+                  {qrCode ? (
+                    <img
+                      src={qrCode}
+                      alt="QR Code WhatsApp"
+                      className="w-full h-full object-contain p-2"
+                    />
+                  ) : (
+                    <Loader2 className="w-10 h-10 text-slate-300 animate-spin" />
+                  )}
                 </div>
 
-                {/* Circular timer */}
-                <div className="flex justify-center">
+                {/* Timer circular */}
+                <div className="flex justify-center relative">
                   <svg width="100" height="100" className="-rotate-90">
-                    <circle
-                      cx="50" cy="50" r={CIRCLE_RADIUS}
-                      fill="none" stroke="#e2e8f0" strokeWidth="3"
-                    />
+                    <circle cx="50" cy="50" r={CIRCLE_RADIUS} fill="none" stroke="#e2e8f0" strokeWidth="3" />
                     <circle
                       cx="50" cy="50" r={CIRCLE_RADIUS}
                       fill="none" stroke="#6366f1" strokeWidth="3"
@@ -88,7 +218,7 @@ export default function Connect() {
                       className="transition-[stroke-dashoffset] duration-1000 linear"
                     />
                   </svg>
-                  <span className="absolute mt-[38px] text-sm text-slate-400 font-medium">
+                  <span className="absolute top-[38px] text-sm text-slate-400 font-medium">
                     {minutes}:{seconds.toString().padStart(2, "0")}
                   </span>
                 </div>
@@ -102,7 +232,7 @@ export default function Connect() {
               </div>
             )}
 
-            {/* Instructions */}
+            {/* Instruções */}
             <div className="space-y-3 text-left">
               {[
                 "Abra o WhatsApp no celular",
@@ -118,7 +248,6 @@ export default function Connect() {
               ))}
             </div>
 
-            {/* Status dot */}
             {countdown > 0 && (
               <div className="flex items-center justify-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
@@ -136,9 +265,11 @@ export default function Connect() {
               <h1 className="text-xl font-bold text-emerald-700">WhatsApp Conectado!</h1>
               <p className="text-emerald-600 text-sm mt-1">Seu Funcionário de IA está ativo</p>
             </div>
-            <span className="inline-block font-mono text-slate-600 bg-slate-100 px-4 py-2 rounded-lg text-sm">
-              +55 11 9XXXX-XXXX
-            </span>
+            {connectedPhone && (
+              <span className="inline-block font-mono text-slate-600 bg-slate-100 px-4 py-2 rounded-lg text-sm">
+                +{connectedPhone}
+              </span>
+            )}
             <div className="space-y-2">
               <div className="w-full h-1 rounded-full bg-slate-200 overflow-hidden">
                 <div
@@ -159,11 +290,13 @@ export default function Connect() {
           <div className="space-y-6 animate-fade-in">
             <XCircle className="w-12 h-12 text-red-500 mx-auto" />
             <div>
-              <h1 className="text-xl font-bold text-red-700">Não foi possível conectar</h1>
-              <p className="text-red-500 text-sm mt-1">Verifique sua conexão e tente novamente</p>
+              <h1 className="text-xl font-bold text-red-700">Erro ao configurar</h1>
+              <p className="text-red-500 text-sm mt-1">
+                {errorMessage || "Verifique sua conexão e tente novamente"}
+              </p>
             </div>
             <Button
-              onClick={handleRetry}
+              onClick={() => { setState("saving"); setErrorMessage(""); }}
               className="gap-2 bg-red-500 hover:bg-red-600 text-white"
             >
               <RefreshCw className="h-4 w-4" /> Tentar Novamente
@@ -172,13 +305,16 @@ export default function Connect() {
         )}
       </div>
 
-      {/* Debug toggle */}
+      {/* Debug (apenas dev) */}
       {import.meta.env.DEV && (
         <div className="mt-8 flex gap-3">
           {(["waiting", "connected", "error"] as const).map((s) => (
             <button
               key={s}
-              onClick={() => { setState(s); if (s === "waiting") setCountdown(TIMER_DURATION); }}
+              onClick={() => {
+                setState(s);
+                if (s === "waiting") setCountdown(TIMER_DURATION);
+              }}
               className={`text-xs transition-colors ${
                 state === s ? "text-slate-500 font-medium" : "text-slate-300 hover:text-slate-500"
               }`}

@@ -4,11 +4,19 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { BottomNav } from "@/components/BottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
+import { AgentProvider } from "@/contexts/AgentContext";
+import { TrialExpiredOverlay } from "@/components/TrialExpiredOverlay";
 import { Loader2 } from "lucide-react";
+
+function isTrialExpired(user: { plan: string; plan_expires_at?: string } | null): boolean {
+  if (!user || user.plan !== "trial" || !user.plan_expires_at) return false;
+  return new Date(user.plan_expires_at) < new Date();
+}
 
 export default function AuthenticatedLayout() {
   const isMobile = useIsMobile();
   const { user, loading } = useAuth();
+  const trialExpired = isTrialExpired(user);
 
   if (loading) {
     return (
@@ -23,6 +31,8 @@ export default function AuthenticatedLayout() {
   }
 
   return (
+    <AgentProvider>
+      {trialExpired && <TrialExpiredOverlay />}
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         {!isMobile && <AppSidebar />}
@@ -41,5 +51,6 @@ export default function AuthenticatedLayout() {
         {isMobile && <BottomNav />}
       </div>
     </SidebarProvider>
+    </AgentProvider>
   );
 }

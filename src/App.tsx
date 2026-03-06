@@ -2,9 +2,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { WizardProvider } from "@/contexts/WizardContext";
+
+// Layout que provê WizardContext para wizard + connect
+const WizardLayout = () => <WizardProvider><Outlet /></WizardProvider>;
 
 import PublicLayout from "@/components/layouts/PublicLayout";
 import AuthenticatedLayout from "@/components/layouts/AuthenticatedLayout";
@@ -13,6 +16,7 @@ import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import ResetPassword from "@/pages/ResetPassword";
 import Dashboard from "@/pages/Dashboard";
+import Agents from "@/pages/Agents";
 import Conversations from "@/pages/Conversations";
 import SettingsPage from "@/pages/Settings";
 import Connect from "@/pages/Connect";
@@ -44,28 +48,20 @@ const App = () => (
             {/* Authenticated routes */}
             <Route element={<AuthenticatedLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/agents" element={<Agents />} />
               <Route path="/conversations" element={<Conversations />} />
               <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/connect" element={<Connect />} />
-            </Route>
 
-            {/* Wizard routes — wrapped with WizardProvider */}
-            <Route element={<AuthenticatedLayout />}>
-              <Route
-                path="/wizard/*"
-                element={
-                  <WizardProvider>
-                    <Routes>
-                      <Route path="step-1" element={<WizardStep1 />} />
-                      <Route path="step-2" element={<WizardStep2 />} />
-                      <Route path="step-3" element={<WizardStep3 />} />
-                      <Route path="step-4" element={<WizardStep4 />} />
-                      <Route path="step-5" element={<WizardStep5 />} />
-                      <Route path="step-6" element={<WizardStep6 />} />
-                    </Routes>
-                  </WizardProvider>
-                }
-              />
+              {/* Wizard + Connect compartilham o WizardProvider */}
+              <Route element={<WizardLayout />}>
+                <Route path="/connect" element={<Connect />} />
+                <Route path="/wizard/step-1" element={<WizardStep1 />} />
+                <Route path="/wizard/step-2" element={<WizardStep2 />} />
+                <Route path="/wizard/step-3" element={<WizardStep3 />} />
+                <Route path="/wizard/step-4" element={<WizardStep4 />} />
+                <Route path="/wizard/step-5" element={<WizardStep5 />} />
+                <Route path="/wizard/step-6" element={<WizardStep6 />} />
+              </Route>
             </Route>
 
             <Route path="*" element={<NotFound />} />
