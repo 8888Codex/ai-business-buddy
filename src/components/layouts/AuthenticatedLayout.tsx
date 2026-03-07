@@ -6,7 +6,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { AgentProvider } from "@/contexts/AgentContext";
 import { TrialExpiredOverlay } from "@/components/TrialExpiredOverlay";
+import { TrialBanner } from "@/components/TrialBanner";
+import { UpgradeDialog } from "@/components/UpgradeDialog";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
 
 function isTrialExpired(user: { plan: string; plan_expires_at?: string } | null): boolean {
   if (!user || user.plan !== "trial" || !user.plan_expires_at) return false;
@@ -17,6 +20,7 @@ export default function AuthenticatedLayout() {
   const isMobile = useIsMobile();
   const { user, loading } = useAuth();
   const trialExpired = isTrialExpired(user);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
 
   if (loading) {
     return (
@@ -33,6 +37,7 @@ export default function AuthenticatedLayout() {
   return (
     <AgentProvider>
       {trialExpired && <TrialExpiredOverlay />}
+      <UpgradeDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog} />
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         {!isMobile && <AppSidebar />}
@@ -44,6 +49,7 @@ export default function AuthenticatedLayout() {
           </header>
 
           <main className="flex-1 p-4 md:p-6 pb-20 md:pb-6 overflow-auto">
+            <TrialBanner onUpgradeClick={() => setShowUpgradeDialog(true)} />
             <Outlet />
           </main>
         </div>

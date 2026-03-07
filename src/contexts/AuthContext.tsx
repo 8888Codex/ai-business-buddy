@@ -6,6 +6,8 @@ interface AuthUser {
   email: string;
   plan: string;
   plan_expires_at?: string;
+  trial_days_left?: number;
+  timezone?: string; // Timezone do usuário para cálculo de reset de contador
 }
 
 interface AuthContextType {

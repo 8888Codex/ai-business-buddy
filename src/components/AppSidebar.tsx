@@ -62,6 +62,9 @@ export function AppSidebar() {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   const planLabel = user?.plan ? (PLAN_LABELS[user.plan] ?? user.plan) : "Plano Gratuito";
+  const planLabelWithTrial = user?.plan === "trial" && user.trial_days_left
+    ? `${planLabel} — ${user.trial_days_left}d`
+    : planLabel;
 
   const handleShareLink = async () => {
     const phone = agent?.whatsapp_phone ?? null;
@@ -185,7 +188,12 @@ export function AppSidebar() {
       <SidebarFooter className="p-4 space-y-3">
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">{planLabel}</Badge>
+            <Badge
+              variant="secondary"
+              className={`text-xs ${user?.plan === "trial" && user.trial_days_left && user.trial_days_left <= 3 ? "bg-orange-100 text-orange-800" : ""}`}
+            >
+              {planLabelWithTrial}
+            </Badge>
           </div>
         )}
         <Button

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAgent } from "@/contexts/AgentContext";
 import { useToast } from "@/hooks/use-toast";
+import { usePlanUsage } from "@/hooks/usePlanUsage";
 import { updateEmail, updatePassword, updateAgent } from "@/services/api";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -90,6 +91,7 @@ export default function SettingsPage() {
   const { agent, reload: reloadAgent } = useAgent();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { usage } = usePlanUsage();
 
   const [reconnectOpen, setReconnectOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -206,6 +208,63 @@ export default function SettingsPage() {
           iconColor="text-amber-500"
         />
       </Section>
+
+      {/* Uso do Plano */}
+      {usage && (
+        <Section title="Uso do Plano">
+          <div className="p-4 space-y-4">
+            {/* Mensagens */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-foreground">Mensagens</span>
+                <span className="text-xs text-muted-foreground">
+                  {usage.messages.used} / {usage.messages.limit === 99999 ? "∞" : usage.messages.limit}
+                </span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-primary h-full transition-all duration-300"
+                  style={{
+                    width: `${Math.min(100, (usage.messages.used / (usage.messages.limit || 1)) * 100)}%`,
+                  }}
+                />
+              </div>
+              {usage.messages.limit !== 99999 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Resetado em {new Date(usage.messages.reset_at).toLocaleDateString("pt-BR")}
+                </p>
+              )}
+            </div>
+
+            {/* Agentes */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-foreground">Agentes de IA</span>
+                <span className="text-xs text-muted-foreground">
+                  {usage.agents.used} / {usage.agents.limit}
+                </span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-violet-500 h-full transition-all duration-300"
+                  style={{
+                    width: `${Math.min(100, (usage.agents.used / (usage.agents.limit || 1)) * 100)}%`,
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Aviso se atingiu limite */}
+            {usage.messages.used >= usage.messages.limit && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                <p className="text-xs text-orange-800">
+                  <span className="font-semibold">Limite de mensagens atingido.</span> Faça upgrade para continuar usando.
+                </p>
+              </div>
+            )}
+          </div>
+        </Section>
+      )}
 
       {/* Agente de IA */}
       <Section title="Agente de IA">

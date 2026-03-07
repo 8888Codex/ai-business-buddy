@@ -23,7 +23,10 @@ const plans = [
     price: "R$ 97",
     period: "/mês",
     highlight: false,
+    messages: "1.000",
+    agents: "1",
     features: [
+      "1.000 mensagens/mês",
       "1 agente de IA",
       "Atendimento via WhatsApp",
       "Histórico de conversas",
@@ -36,7 +39,10 @@ const plans = [
     price: "R$ 197",
     period: "/mês",
     highlight: true,
+    messages: "5.000",
+    agents: "3",
     features: [
+      "5.000 mensagens/mês",
       "3 agentes de IA",
       "Atendimento via WhatsApp",
       "Histórico completo",
@@ -51,7 +57,10 @@ const plans = [
     price: "R$ 497",
     period: "/mês",
     highlight: false,
+    messages: "Ilimitado",
+    agents: "10",
     features: [
+      "Mensagens ilimitadas",
       "10 agentes de IA",
       "Múltiplos WhatsApps",
       "Tudo do Pro",
