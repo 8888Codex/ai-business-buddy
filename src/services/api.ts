@@ -3,6 +3,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ?? '';
 interface ApiError {
   status?: number;
   message?: string;
+  code?: string;
 }
 
 interface Business {
@@ -63,13 +64,20 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     try {
       const errorData = await response.json();
       error.message = errorData.message || errorData.error || response.statusText;
+      error.code = errorData.code || errorData.error;
     } catch (e) {
       // Ignora erros de parsing do JSON
     }
 
-    // Trial expirado — dispara evento global para o AuthContext recarregar
+    // Erro 402 — limite atingido (trial, mensagens, agentes)
     if (response.status === 402) {
-      window.dispatchEvent(new CustomEvent('trial-expired'));
+      if (error.code === 'trial_expired') {
+        window.dispatchEvent(new CustomEvent('trial-expired'));
+      } else if (error.code === 'message_limit_reached') {
+        window.dispatchEvent(new CustomEvent('message-limit-reached', { detail: error }));
+      } else if (error.code === 'agent_limit_reached') {
+        window.dispatchEvent(new CustomEvent('agent-limit-reached', { detail: error }));
+      }
     }
 
     throw error;
@@ -182,7 +190,7 @@ export async function createOrGetAgent(data: {
  * POST /auth/signup - Criar nova conta
  */
 export async function signup(email: string, password: string): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/v1/auth/signup`, {
+  const response = await fetch(`${API_BASE_URL}/auth/signup`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -220,7 +228,7 @@ export async function signup(email: string, password: string): Promise<AuthRespo
  * POST /auth/login - Fazer login
  */
 export async function login(email: string, password: string): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/v1/auth/login`, {
+  const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -516,6 +524,46 @@ export async function createStripeCheckout(plan: 'starter' | 'pro' | 'business')
  */
 export async function createStripePortal(): Promise<{ portal_url: string }> {
   return fetchWithAuth('/billing/portal', { method: 'POST' });
+}
+
+/**
+ * GET /billing/usage - Obter uso atual do plano
+ */
+export async function getBillingUsage(): Promise<{
+  plan: string;
+  plan_expires_at?: string;
+  trial_days_left?: number;
+  messages: { used: number; limit: number; reset_at: string };
+  agents: { used: number; limit: number };
+}> {
+  return fetchWithAuth('/billing/usage');
+}
+
+/**
+ * GET /billing/downgrade-preview - Simular impacto de downgrade
+ */
+export async function getDowngradePreview(targetPlan: string): Promise<{
+  current_plan: string;
+  target_plan: string;
+  current_agent_limit: number;
+  target_agent_limit: number;
+  impact: { agents_to_disable: number; message: string };
+  agents_to_disable: Array<{ id: string; name: string; action: string }>;
+}> {
+  return fetchWithAuth(`/billing/downgrade-preview?targetPlan=${targetPlan}`);
+}
+
+/**
+ * POST /billing/downgrade-confirm - Confirmar downgrade
+ */
+export async function confirmDowngrade(
+  targetPlan: string,
+  agentsToDisable: string[]
+): Promise<{ success: boolean; message: string; changes: any; user: any }> {
+  return fetchWithAuth('/billing/downgrade-confirm', {
+    method: 'POST',
+    body: JSON.stringify({ targetPlan, agentsToDisable }),
+  });
 }
 
 export default {
