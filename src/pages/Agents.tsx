@@ -117,7 +117,7 @@ export default function Agents() {
     async function load() {
       try {
         const list = await getAgents();
-        const agentList = list as AgentData[];
+        const agentList = list as unknown as AgentData[];
         setAgents(agentList);
 
         const entries = await Promise.allSettled(
