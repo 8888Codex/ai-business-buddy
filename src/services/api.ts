@@ -210,33 +210,11 @@ export async function createOrGetAgent(data: {
  * POST /auth/signup - Criar nova conta
  */
 export async function signup(email: string, password: string): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+  const data = await requestApi('/auth/signup', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ email, password }),
   });
 
-  if (!response.ok) {
-    const error: ApiError = {
-      status: response.status,
-      message: response.statusText,
-    };
-
-    try {
-      const errorData = await response.json();
-      error.message = errorData.message || errorData.error || response.statusText;
-    } catch (e) {
-      // Ignora erros de parsing do JSON
-    }
-
-    throw error;
-  }
-
-  const data = await response.json();
-
-  // Salva token no localStorage
   if (data.access_token) {
     localStorage.setItem('access_token', data.access_token);
   }
@@ -248,38 +226,24 @@ export async function signup(email: string, password: string): Promise<AuthRespo
  * POST /auth/login - Fazer login
  */
 export async function login(email: string, password: string): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+  const data = await requestApi('/auth/login', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ email, password }),
   });
 
-  if (!response.ok) {
-    const error: ApiError = {
-      status: response.status,
-      message: response.statusText,
-    };
-
-    try {
-      const errorData = await response.json();
-      error.message = errorData.message || errorData.error || response.statusText;
-    } catch (e) {
-      // Ignora erros de parsing do JSON
-    }
-
-    throw error;
-  }
-
-  const data = await response.json();
-
-  // Salva token no localStorage
   if (data.access_token) {
     localStorage.setItem('access_token', data.access_token);
   }
 
   return data;
+}
+
+/**
+ * GET /auth/me - Buscar usuário autenticado
+ */
+export async function getCurrentUser(): Promise<AuthResponse['user']> {
+  const data = await fetchWithAuth('/auth/me');
+  return data.user;
 }
 
 /**

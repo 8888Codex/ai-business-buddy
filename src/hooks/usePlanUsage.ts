@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { getBillingUsage } from "@/services/api";
 
 interface PlanUsage {
   plan: string;
@@ -37,19 +38,8 @@ export function usePlanUsage(): UsePlanUsageReturn {
 
     try {
       setLoading(true);
-      const apiUrl = import.meta.env.VITE_API_URL ?? "";
-      const token = localStorage.getItem("access_token");
-
-      const res = await fetch(`${apiUrl}/billing/usage`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) {
-        throw new Error("Erro ao buscar uso do plano");
-      }
-
-      const data = await res.json();
-      setUsage(data);
+      const data = await getBillingUsage();
+      setUsage(data as PlanUsage);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro desconhecido");

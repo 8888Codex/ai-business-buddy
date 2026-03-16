@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { logout as apiLogout } from "@/services/api";
+import { getCurrentUser, logout as apiLogout } from "@/services/api";
 
 interface AuthUser {
   id: string;
@@ -37,18 +37,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return;
     }
+
     try {
-      const apiUrl = import.meta.env.VITE_API_URL ?? "";
-      const res = await fetch(`${apiUrl}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data.user);
-      } else {
-        localStorage.removeItem("access_token");
-        setUser(null);
-      }
+      const userData = await getCurrentUser();
+      setUser(userData);
     } catch {
       localStorage.removeItem("access_token");
       setUser(null);
