@@ -15,7 +15,6 @@ Deno.serve(async (req) => {
     const requestUrl = new URL(req.url);
     const path = requestUrl.pathname.split('/external-api-proxy')[1] || '/';
     const targetUrl = `${EXTERNAL_API_BASE_URL}${path}${requestUrl.search}`;
-    console.log('[external-api-proxy]', method, targetUrl);
 
     const upstreamHeaders = new Headers();
     upstreamHeaders.set('Content-Type', req.headers.get('content-type') ?? 'application/json');
@@ -27,6 +26,7 @@ Deno.serve(async (req) => {
 
     const method = req.method.toUpperCase();
     const shouldSendBody = !['GET', 'HEAD'].includes(method);
+    console.log('[external-api-proxy]', method, targetUrl);
 
     const upstreamResponse = await fetch(targetUrl, {
       method,
