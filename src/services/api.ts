@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? '';
+const API_PROXY_BASE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-api-proxy`;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 interface ApiError {
   status?: number;
@@ -35,39 +36,50 @@ interface AuthResponse {
   message?: string;
 }
 
-/**
- * Helper para fazer requisições autenticadas
- */
-async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  const token = localStorage.getItem('access_token');
+function buildProxyHeaders(token: string | null, headers?: HeadersInit): Headers {
+  const proxyHeaders = new Headers(headers);
 
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (!proxyHeaders.has('Content-Type')) {
+    proxyHeaders.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${API_BASE_URL}${url}`, {
+  proxyHeaders.set('apikey', SUPABASE_PUBLISHABLE_KEY);
+  proxyHeaders.set('Authorization', `Bearer ${SUPABASE_PUBLISHABLE_KEY}`);
+
+  if (token) {
+    proxyHeaders.set('x-external-auth-token', token);
+  } else {
+    proxyHeaders.delete('x-external-auth-token');
+  }
+
+  return proxyHeaders;
+}
+
+async function parseApiError(response: Response): Promise<ApiError> {
+  const error: ApiError = {
+    status: response.status,
+    message: response.statusText,
+  };
+
+  try {
+    const errorData = await response.json();
+    error.message = errorData.message || errorData.error || response.statusText;
+    error.code = errorData.code || errorData.error;
+  } catch {
+    // Ignora erros de parsing do JSON
+  }
+
+  return error;
+}
+
+async function requestApi(url: string, options: RequestInit = {}, token: string | null = null) {
+  const response = await fetch(`${API_PROXY_BASE_URL}${url}`, {
     ...options,
-    headers,
+    headers: buildProxyHeaders(token, options.headers),
   });
 
   if (!response.ok) {
-    const error: ApiError = {
-      status: response.status,
-      message: response.statusText,
-    };
-
-    try {
-      const errorData = await response.json();
-      error.message = errorData.message || errorData.error || response.statusText;
-      error.code = errorData.code || errorData.error;
-    } catch (e) {
-      // Ignora erros de parsing do JSON
-    }
+    const error = await parseApiError(response);
 
     // Erro 402 — limite atingido (trial, mensagens, agentes)
     if (response.status === 402) {
@@ -84,6 +96,14 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
   }
 
   return response.json();
+}
+
+/**
+ * Helper para fazer requisições autenticadas
+ */
+async function fetchWithAuth(url: string, options: RequestInit = {}) {
+  const token = localStorage.getItem('access_token');
+  return requestApi(url, options, token);
 }
 
 /**
@@ -190,33 +210,11 @@ export async function createOrGetAgent(data: {
  * POST /auth/signup - Criar nova conta
  */
 export async function signup(email: string, password: string): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+  const data = await requestApi('/auth/signup', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ email, password }),
   });
 
-  if (!response.ok) {
-    const error: ApiError = {
-      status: response.status,
-      message: response.statusText,
-    };
-
-    try {
-      const errorData = await response.json();
-      error.message = errorData.message || errorData.error || response.statusText;
-    } catch (e) {
-      // Ignora erros de parsing do JSON
-    }
-
-    throw error;
-  }
-
-  const data = await response.json();
-
-  // Salva token no localStorage
   if (data.access_token) {
     localStorage.setItem('access_token', data.access_token);
   }
@@ -228,38 +226,24 @@ export async function signup(email: string, password: string): Promise<AuthRespo
  * POST /auth/login - Fazer login
  */
 export async function login(email: string, password: string): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+  const data = await requestApi('/auth/login', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ email, password }),
   });
 
-  if (!response.ok) {
-    const error: ApiError = {
-      status: response.status,
-      message: response.statusText,
-    };
-
-    try {
-      const errorData = await response.json();
-      error.message = errorData.message || errorData.error || response.statusText;
-    } catch (e) {
-      // Ignora erros de parsing do JSON
-    }
-
-    throw error;
-  }
-
-  const data = await response.json();
-
-  // Salva token no localStorage
   if (data.access_token) {
     localStorage.setItem('access_token', data.access_token);
   }
 
   return data;
+}
+
+/**
+ * GET /auth/me - Buscar usuário autenticado
+ */
+export async function getCurrentUser(): Promise<AuthResponse['user']> {
+  const data = await fetchWithAuth('/auth/me');
+  return data.user;
 }
 
 /**
